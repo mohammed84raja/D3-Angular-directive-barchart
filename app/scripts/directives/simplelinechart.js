@@ -16,10 +16,11 @@ angular.module('angularjsApp')
                 gheight: "=",
                 onClick: "&"
             },
-            replace: true,
+            replace: true, 
+	        transclude: true,
             link: function(scope, iElement, iAttrs) {
                 d3Service.d3().then(function(d3) {
-
+                	
                     var cntrWidth = d3.select(".chart-container").node().getBoundingClientRect().width;
                     var margin = { top: 20, right: 20, bottom: 50, left: 40 },
                         width = cntrWidth - margin.left - margin.right,
@@ -37,16 +38,19 @@ angular.module('angularjsApp')
                         return scope.$apply();
                     };
                     scope.$watch(function() {
+                        scope.render(scope.data);
+                    	return iElement.attr('data'); 
+                    }, function(newValue){
+                    	 return scope.render(scope.data);
+                    });
+
+                    scope.$watch(function() {
                         return angular.element(window)[0].innerWidth;
                     }, function() {
                         return scope.render(scope.data);
-                    });
+                    });                    
 
-                    // watch for data changes and re-render
-                    scope.$watch('data', function(newVals, oldVals) {
-                        return scope.render(newVals);
-                    }, true);
-
+                  
                     // define render function
                     scope.render = function(data) {
                         // remove all previous items before render
@@ -117,8 +121,6 @@ angular.module('angularjsApp')
                             .append("g")
                             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
                         // D3 scales = just math
-                        // x is a function that transforms from "domain" (data) into "range" (usual pixels)
-                        // domain gets set after the data loads
                         // measure the domain (for x, unique letters) (for y [0,maxFrequency])
                         // now the scales are finished and usable
                         x.domain(data.map(function(d) {
@@ -146,7 +148,7 @@ angular.module('angularjsApp')
 
                         // THIS IS THE ACTUAL WORK!
                         var bars = svg.selectAll(".bar").data(data, function(d) {
-                                return d.name; }) // (data) is an array/iterable thing, second argument is an ID generator function
+                                return d.name; }) 
 
                         bars.exit()
                             .transition()
@@ -156,15 +158,15 @@ angular.module('angularjsApp')
                             .style('fill-opacity', 1e-6)
                             .remove();
 
-                        // data that needs DOM = enter() (a set/selection, not an event!)
+                        
                         bars.enter().append("rect")
                             .attr("class", "bar")
                             .attr("y", y(0))
                             .attr("height", height - y(0))
                             .style("fill", "url(#gradient)")
                             .on('click', function() {
-                              scope.data = scope.onClick();
-                              scope.render(scope.data);
+                              scope.onClick();
+                              scope.$apply();
                             })
                             .on('mouseover', function(data) {
                                 d3.select(this).style('opacity', .8);
@@ -177,7 +179,7 @@ angular.module('angularjsApp')
                             })
                             // the "UPDATE" set:
                         bars.transition().duration(300).attr("x", function(d) {
-                                return x(d.name); }) // (d) is one item from the data array, x is the scale object from above
+                                return x(d.name); }) 
                             .attr("width", x.rangeBand()) // constant, so no callback function(d) here
                             .attr("y", function(d) {
                                 return y(d.value); })

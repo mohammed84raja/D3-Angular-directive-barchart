@@ -22,7 +22,8 @@ angular.module('angularjsApp')
 	];
 	$scope.d3OnClick = function(item){
 		$scope.d3Data = $scope.generateData();
-		return $scope.d3Data;
+		console.log("------------------d3OnClick--------------------");
+		//return $scope.d3Data;
 	};
 
 	$scope.generateData = function() {
